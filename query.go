@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/shurcooL/graphql/ident"
+	"github.com/MGSousa/graphql/ident"
 )
 
 func constructQuery(v interface{}, variables map[string]interface{}) string {
@@ -107,10 +107,19 @@ func writeQuery(w io.Writer, t reflect.Type, inline bool) {
 			io.WriteString(w, "{")
 		}
 		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+
+			// check if this field is marked
+			// to be ignored in query
+			qv, ok := f.Tag.Lookup("only")
+			if ok && qv == "mutation" {
+				continue
+			}
+
 			if i != 0 {
 				io.WriteString(w, ",")
 			}
-			f := t.Field(i)
+			
 			value, ok := f.Tag.Lookup("graphql")
 			inlineField := f.Anonymous && !ok
 			if !inlineField {
